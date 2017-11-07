@@ -152,7 +152,7 @@ imports:
   - transport/zipkin
   - utils
 - name: github.com/uber/jaeger-lib
-  version: 3b2a9ad2a045881ab7a0f81d465be54c8292ee4f
+  version: 7ccca79c60033f40500864584c9d1662b413172c
   subpackages:
   - metrics
   - metrics/go-kit
