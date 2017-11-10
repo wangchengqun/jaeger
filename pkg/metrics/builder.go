@@ -61,9 +61,10 @@ func AddFlags(flags *flag.FlagSet) {
 }
 
 // InitFromViper initializes Builder with properties retrieved from Viper.
-func (b *Builder) InitFromViper(v *viper.Viper) {
+func (b *Builder) InitFromViper(v *viper.Viper) *Builder {
 	b.Backend = v.GetString(metricsBackend)
 	b.HTTPRoute = v.GetString(metricsHTTPRoute)
+	return b
 }
 
 // CreateMetricsFactory creates a metrics factory based on the configured type of the backend.

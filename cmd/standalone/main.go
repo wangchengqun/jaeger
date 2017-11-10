@@ -22,12 +22,11 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	jaegerClientConfig "github.com/uber/jaeger-client-go/config"
 	"github.com/uber/jaeger-lib/metrics"
-	"github.com/uber/jaeger-lib/metrics/go-kit"
-	"github.com/uber/jaeger-lib/metrics/go-kit/expvar"
 	"github.com/uber/tchannel-go"
 	"github.com/uber/tchannel-go/thrift"
 	"go.uber.org/zap"
@@ -63,11 +62,16 @@ func main() {
 			flags.TryLoadConfigFile(v, logger)
 
 			runtime.GOMAXPROCS(runtime.NumCPU())
+
 			sFlags := new(flags.SharedFlags).InitFromViper(v)
 			cOpts := new(collector.CollectorOptions).InitFromViper(v)
 			qOpts := new(query.QueryOptions).InitFromViper(v)
+			mBldr := new(pMetrics.Builder).InitFromViper(v)
 
-			metricsFactory := xkit.Wrap("jaeger-standalone", expvar.NewFactory(10))
+			metricsFactory, err := mBldr.CreateMetricsFactory("jaeger-standalone")
+			if err != nil {
+				return errors.Wrap(err, "Cannot create metrics factory")
+			}
 			memStore := memory.NewStore()
 
 			builder := &agentApp.Builder{}
@@ -213,7 +217,7 @@ func startQuery(
 			Param: 0.001,
 		},
 		RPCMetrics: true,
-	}.New("jaeger-query", jaegerClientConfig.Metrics(baseFactory))
+	}.New("jaeger-query") // , jaegerClientConfig.Metrics(baseFactory))
 	if err != nil {
 		logger.Fatal("Failed to initialize tracer", zap.Error(err))
 	}
